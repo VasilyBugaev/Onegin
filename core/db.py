@@ -34,7 +34,9 @@ async def create_conversation() -> int:
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute("INSERT INTO conversations DEFAULT VALUES")
         await db.commit()
-        return cursor.lastrowid
+        conversation_id = cursor.lastrowid
+        assert conversation_id is not None
+        return conversation_id
 
 
 async def latest_conversation() -> int | None:
@@ -59,7 +61,7 @@ async def load_messages(conversation_id: int, limit: int = 30) -> list[Message]:
             "SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY id DESC LIMIT ?",
             (conversation_id, limit),
         )
-        result = await cursor.fetchall()
+        result = list(await cursor.fetchall())
         return [Message(role=role, content=content) for role, content in reversed(result)]
 
 

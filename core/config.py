@@ -10,4 +10,4 @@ class Settings(BaseSettings):
     timezone: str
 
 
-settings = Settings()
+settings = Settings()  # pyright: ignore[reportCallIssue]
