@@ -193,12 +193,12 @@ uv add fastapi "uvicorn[standard]" openai pydantic-settings aiosqlite
 ```python
 async def run(messages, tools, max_steps=6):
     for _ in range(max_steps):
-        reply = await llm.chat(messages, tools=tools)   # со стримингом
+        reply = await llm.chat(messages, tools=tools)  # со стримингом
         messages.append(reply)
         if not reply.tool_calls:
-            return reply                                 # финальный ответ
+            return reply  # финальный ответ
         for call in reply.tool_calls:
-            result = await registry.execute(call)        # ошибки тоже возвращаем
+            result = await registry.execute(call)  # ошибки тоже возвращаем
             messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
 ```
 

@@ -21,6 +21,7 @@ async def lifespan(app: FastAPI):
     await db.init()
     yield
 
+
 app = FastAPI(lifespan=lifespan)
 
 
@@ -45,9 +46,9 @@ async def ws_chat(ws: WebSocket) -> None:
                 if conv_id is None:
                     conv_id = await db.create_conversation()
                 await ws.send_json({"type": "start", "conversation_id": conv_id})
-                await handle_user_message(conversation_id=conv_id,
-                                          text=request.text,
-                                          on_token=send_token)
+                await handle_user_message(
+                    conversation_id=conv_id, text=request.text, on_token=send_token
+                )
                 await ws.send_json({"type": "done"})
             except WebSocketDisconnect:
                 raise

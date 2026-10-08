@@ -22,11 +22,13 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 """
 
+
 async def init() -> None:
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA journal_mode=WAL")
         await db.executescript(SCHEMA)
         await db.commit()
+
 
 async def create_conversation() -> int:
     async with aiosqlite.connect(DB_PATH) as db:
@@ -34,24 +36,31 @@ async def create_conversation() -> int:
         await db.commit()
         return cursor.lastrowid
 
+
 async def latest_conversation() -> int | None:
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute("SELECT id FROM conversations ORDER BY id DESC LIMIT 1")
         conversation_info = await cursor.fetchone()
         return conversation_info[0] if conversation_info else None
 
+
 async def add_message(conversation_id: int, message: Message) -> None:
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)",
-                         (conversation_id, message.role, message.content))
+        await db.execute(
+            "INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)",
+            (conversation_id, message.role, message.content),
+        )
         await db.commit()
+
 
 async def load_messages(conversation_id: int, limit: int = 30) -> list[Message]:
     async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute("SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY id DESC LIMIT ?",
-                                  (conversation_id, limit))
+        cursor = await db.execute(
+            "SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY id DESC LIMIT ?",
+            (conversation_id, limit),
+        )
         result = await cursor.fetchall()
-        return [Message(role = role, content = content) for role, content in reversed(result)]
+        return [Message(role=role, content=content) for role, content in reversed(result)]
 
 
 if __name__ == "__main__":
@@ -60,9 +69,8 @@ if __name__ == "__main__":
     async def main() -> None:
         await init()
         cid = await create_conversation()
-        await add_message(cid, Message(role = "user", content = "проверка"))
-        await add_message(cid, Message(role = "assistant", content = "слышу"))
+        await add_message(cid, Message(role="user", content="проверка"))
+        await add_message(cid, Message(role="assistant", content="слышу"))
         print(cid, await latest_conversation(), await load_messages(cid))
 
     asyncio.run(main())
-
