@@ -1,0 +1,15 @@
+services:
+  core:
+    build: .
+    env_file: .env
+    environment:
+      WATCHFILES_FORCE_POLLING: "true"   # иначе --reload не видит правки с Windows
+    ports:
+      - "127.0.0.1:8000:8000"            # только локально; наружу — через Tailscale
+    volumes:
+      - ./core:/app/core                 # код с хоста, чтобы не пересобирать образ
+      - onegin_data:/app/data
+    command: uv run --no-sync uvicorn core.app:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  onegin_data:
